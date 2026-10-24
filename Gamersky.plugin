@@ -1,0 +1,26 @@
+#!name=游民星空去广告
+#!desc=移除游民星空 App 开屏广告、弹窗广告、首页信息流广告、文章页推荐广告及广告统计
+#!author=lpleasure
+#!homepage=https://github.com/lpleasure/ymxkads-loon
+#!icon=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Game.png
+#!date=2026-10-25
+
+[Rewrite]
+# 弹窗广告
+^https?:\/\/router\d*\.gamersky\.com\/@\/adSystem\/ad\/getAppPopupAd reject-dict
+# 广告统计上报
+^https?:\/\/item-statistics\.gamersky\.com(:\d+)?\/ad\/statistics reject-dict
+^https?:\/\/appapi2click\.gamersky\.com\/v\d\/(statisticAd|reportHomeBanner) reject-dict
+
+[Script]
+# 开屏广告
+http-response ^https?:\/\/router\d*\.gamersky\.com\/@\/adSystem\/ad\/getAdAtLaunchView script-path=https://raw.githubusercontent.com/lpleasure/ymxkads-loon/main/Gamersky.js, requires-body=true, timeout=10, tag=游民星空开屏广告
+# 文章页推荐广告开关
+http-response ^https?:\/\/router\d*\.gamersky\.com\/@\/adSystem\/tempAdConfig\/get script-path=https://raw.githubusercontent.com/lpleasure/ymxkads-loon/main/Gamersky.js, requires-body=true, timeout=10, tag=游民星空文章广告
+# 第三方广告 SDK 配置
+http-response ^https?:\/\/router\d*\.gamersky\.com\/@\/app\/config\/ script-path=https://raw.githubusercontent.com/lpleasure/ymxkads-loon/main/Gamersky.js, requires-body=true, timeout=10, tag=游民星空广告配置
+# 信息流 / 页面广告卡片
+http-response ^https?:\/\/router\d*\.gamersky\.com\/@\/(lists\/getListElements|pageUi\/) script-path=https://raw.githubusercontent.com/lpleasure/ymxkads-loon/main/Gamersky.js, requires-body=true, timeout=10, tag=游民星空信息流广告
+
+[MITM]
+hostname = router*.gamersky.com, appapi2click.gamersky.com, item-statistics.gamersky.com
