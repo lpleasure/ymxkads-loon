@@ -1,5 +1,5 @@
 #!name=游民星空去广告
-#!desc=移除游民星空 App 开屏广告、弹窗广告、首页信息流广告、文章页推荐广告及广告统计
+#!desc=移除游民星空 App 开屏广告、弹窗广告、首页信息流广告、文章页推荐广告及广告统计（纯重写，无脚本）
 #!author=lpleasure
 #!homepage=https://github.com/lpleasure/ymxkads-loon
 #!icon=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Game.png
@@ -8,19 +8,22 @@
 [Rewrite]
 # 弹窗广告
 ^https?:\/\/router\d*\.gamersky\.com\/@\/adSystem\/ad\/getAppPopupAd reject-dict
+
 # 广告统计上报
 ^https?:\/\/item-statistics\.gamersky\.com(:\d+)?\/ad\/statistics reject-dict
 ^https?:\/\/appapi2click\.gamersky\.com\/v\d\/(statisticAd|reportHomeBanner) reject-dict
 
-[Script]
-# 开屏广告
-http-response ^https?:\/\/router\d*\.gamersky\.com\/@\/adSystem\/ad\/getAdAtLaunchView script-path=https://raw.githubusercontent.com/lpleasure/ymxkads-loon/main/Gamersky.js, requires-body=true, timeout=10, tag=游民星空开屏广告
-# 文章页推荐广告开关
-http-response ^https?:\/\/router\d*\.gamersky\.com\/@\/adSystem\/tempAdConfig\/get script-path=https://raw.githubusercontent.com/lpleasure/ymxkads-loon/main/Gamersky.js, requires-body=true, timeout=10, tag=游民星空文章广告
-# 第三方广告 SDK 配置
-http-response ^https?:\/\/router\d*\.gamersky\.com\/@\/app\/config\/ script-path=https://raw.githubusercontent.com/lpleasure/ymxkads-loon/main/Gamersky.js, requires-body=true, timeout=10, tag=游民星空广告配置
-# 信息流 / 页面广告卡片
-http-response ^https?:\/\/router\d*\.gamersky\.com\/@\/(lists\/getListElements|pageUi\/) script-path=https://raw.githubusercontent.com/lpleasure/ymxkads-loon/main/Gamersky.js, requires-body=true, timeout=10, tag=游民星空信息流广告
+# 开屏广告（自营）
+^https?:\/\/router\d*\.gamersky\.com\/@\/adSystem\/ad\/getAdAtLaunchView response-body-json-jq 'if .data then .data.ad = null | .data.position.enable = 0 | .data.position.isValidRequest = 0 | .data.position.showSeconds = 0 else . end'
+
+# 文章页推荐 / 底部广告开关
+^https?:\/\/router\d*\.gamersky\.com\/@\/adSystem\/tempAdConfig\/get response-body-json-jq 'if .config then .config.postBottomAd.isEnable = false | .config.postBottomAd.iOSEnable = false | .config.postRecommendAd.isEnable = false | .config.postRecommendAd.iOSEnable = false | .config.pddAdConfig.isOpenStatistics = false else . end'
+
+# 第三方开屏 / 信息流广告 SDK 配置
+^https?:\/\/router\d*\.gamersky\.com\/@\/app\/config\/ response-body-json-jq 'if .config then .config += {"ioslaunchAdProviderName":"close","ioslaunchAdPercentageAdTroop":0,"ioslaunchAdPercentageUBIX":0,"ioslaunchAdPercentageWhalessp":0,"ioslaunchAdIdAdTroop":"","ioslaunchAdIdChuanShanJia":"","ioslaunchAdIdGuangDianTong":"","ioslaunchAdIdUBIX":"","ioslaunchAdIdWhalessp":"","ioslistAdIdAdTroop":"","ioslistAdIdChuanShanJia":"","ioslistAdIdUBIX":"","ioslistAdPercentageADTroop":0,"ioslistAdPercentageUBIX":0,"ioslistWangMengAdProviderName":"close","ioslistWangMengAdPositionNumbers":[],"ioslistZhiKeAdProviderName":"close","ioslistZhiKeAdPositionNumbers":[],"iosPostPageBottomAdProvider":"close","iosPostPageRelatedAdProvider":"close","preloadAdVideos":[]} else . end'
+
+# 信息流 / 页面广告卡片（过滤带广告标记的条目）
+^https?:\/\/router\d*\.gamersky\.com\/@\/(lists\/getListElements|pageUi\/) response-body-json-jq 'def notad: ((.adCategory // "") == "") and ((.adType // "") == "") and (.beAdIconVisible != true) and (((.adId // "0") | tostring) as $i | $i == "0" or $i == ""); if (.listElements | type) == "array" then .listElements |= map(select(notad) | if (.childElements | type) == "array" then .childElements |= map(select(notad)) else . end) else . end'
 
 [MITM]
 hostname = router*.gamersky.com, appapi2click.gamersky.com, item-statistics.gamersky.com
