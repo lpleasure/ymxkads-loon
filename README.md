@@ -24,7 +24,9 @@ https://raw.githubusercontent.com/lpleasure/ymxkads-loon/main/Gamersky.plugin
 | 头条顶部轮播图 | `lists/getListElements`（`huanDeng`） | jq 删除 |
 | 「正在热销」商城模块 | `lists/getListElements`（`biaoTiLan` + `game_topic_list`） | jq 删除 |
 | 文章页「相关推荐」 | `lists/getListElements`（相关内容列表） | jq 清空 |
-| 文章页游戏购买卡片 | `postPage/index`（`widgetsName` 游戏卡片、正文内嵌购买卡片） | jq 移除 |
+| 文章页游戏购买卡片 | `postPage/index`（`widgetsName` 游戏卡片） | jq 移除 |
+
+jq 表达式只用基础语法（不用 `def`、正则、中文字面量、转义引号），以兼容 Loon 内置的 jq 引擎。
 | 广告曝光统计 | `item-statistics…/ad/…`、`appapi2click…/statisticAd` | reject-dict |
 
 ## 说明
